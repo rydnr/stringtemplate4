@@ -67,7 +67,7 @@ import static org.junit.Assert.assertTrue;
 
 public abstract class BaseTest {
 	public static final String pathSep = System.getProperty("path.separator");
-    public static final String tmpdir = System.getProperty("java.io.tmpdir") + File.separator;
+	public static final String tmpdir = System.getProperty("java.io.tmpdir") + File.separator;
 	public static final boolean interactive = Boolean.parseBoolean(System.getProperty("test.interactive"));
 	public static final String newline = Misc.newline;
 
@@ -174,6 +174,155 @@ public abstract class BaseTest {
         outputFileST.add("code", main);
         writeFile(dirName, "Test.java", outputFileST.render());
     }
+
+	public String java(String mainClassName, String extraCLASSPATH, String workingDirName) throws InterruptedException, IOException {
+		String classpathOption = "-classpath";
+
+		String path = "."+pathSep+CLASSPATH;
+		if ( extraCLASSPATH!=null ) path = "."+pathSep+extraCLASSPATH+pathSep+CLASSPATH;
+
+		String[] args = new String[] {
+					"java",
+					classpathOption, path,
+					mainClassName
+		};
+		System.out.println("executing: "+Arrays.toString(args));
+		return exec(args, null, workingDirName);
+	}
+
+	public void jar(String fileName, String[] files, String workingDirName) throws IOException {
+		File workingDir = new File(workingDirName);
+		JarOutputStream stream = new JarOutputStream(new FileOutputStream(new File(workingDir, fileName)));
+		try {
+			for (String inputFileName : files) {
+				File file = new File(workingDirName, inputFileName);
+				addJarFile(file, workingDir, stream);
+			}
+		}
+		finally {
+			stream.close();
+		}
+	}
+
+	protected void addJarFile(File file, File workingDir, JarOutputStream stream) throws IOException {
+		String name = workingDir.toURI().relativize(file.toURI()).getPath().replace("\\", "/");
+		if (file.isDirectory()) {
+			if (!name.isEmpty()) {
+				if (!name.endsWith("/")) {
+					// the entry for a folder must end with "/"
+					name += "/";
+				}
+
+				JarEntry entry = new JarEntry(name);
+				entry.setTime(file.lastModified());
+				stream.putNextEntry(entry);
+				stream.closeEntry();
+			}
+
+			for (File child : file.listFiles()) {
+				addJarFile(child, workingDir, stream);
+			}
+
+			return;
+		}
+
+		JarEntry entry = new JarEntry(name);
+		entry.setTime(file.lastModified());
+		stream.putNextEntry(entry);
+
+		BufferedInputStream input = new BufferedInputStream(new FileInputStream(file));
+		try {
+			byte[] buffer = new byte[16 * 1024];
+			while (true) {
+				int count = input.read(buffer);
+				if (count == -1) {
+					break;
+				}
+
+				stream.write(buffer, 0, count);
+			}
+
+			stream.closeEntry();
+		}
+		finally {
+			input.close();
+		}
+	}
+
+	protected void compile(String fileName, String workingDirName) {
+		List<File> files = new ArrayList<File>();
+		files.add(new File(workingDirName, fileName));
+
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+		StandardJavaFileManager fileManager =
+			compiler.getStandardFileManager(null, null, null);
+
+		Iterable<? extends JavaFileObject> compilationUnits =
+			fileManager.getJavaFileObjectsFromFiles(files);
+
+		Iterable<String> compileOptions =
+			Arrays.asList("-g", "-source", "1.6", "-target", "1.6", "-implicit:class", "-Xlint:-options", "-d", workingDirName, "-cp", workingDirName+pathSep+CLASSPATH);
+
+		JavaCompiler.CompilationTask task =
+			compiler.getTask(null, fileManager, null, compileOptions, null,
+							 compilationUnits);
+		boolean ok = task.call();
+
+		try {
+			fileManager.close();
+		}
+		catch (IOException ioe) {
+			ioe.printStackTrace(System.err);
+		}
+
+		assertTrue(ok);
+	}
+
+	public String exec(String[] args, String[] envp, String workingDirName) throws InterruptedException, IOException {
+		String cmdLine = Arrays.toString(args);
+		File workingDir = new File(workingDirName);
+
+		Process process =
+			Runtime.getRuntime().exec(args, envp, workingDir);
+		StreamVacuum stdout = new StreamVacuum(process.getInputStream());
+		StreamVacuum stderr = new StreamVacuum(process.getErrorStream());
+		stdout.start();
+		stderr.start();
+		process.waitFor();
+		stdout.join();
+		stderr.join();
+		if ( stdout.toString().length()>0 ) {
+			return stdout.toString();
+		}
+		if ( stderr.toString().length()>0 ) {
+			System.err.println("compile stderr from: "+cmdLine);
+			System.err.println(stderr);
+		}
+		int ret = process.exitValue();
+		if ( ret!=0 ) System.err.println("failed");
+		return null;
+	}
+
+	public static void writeFile(String dir, String fileName, String content) {
+		try {
+			File f = new File(dir, fileName);
+			if ( !f.getParentFile().exists() ) f.getParentFile().mkdirs();
+			FileWriter w = new FileWriter(f);
+			BufferedWriter bw = new BufferedWriter(w);
+			bw.write(content);
+			bw.close();
+			w.close();
+		}
+		catch (IOException ioe) {
+			System.err.println("can't write file");
+			ioe.printStackTrace(System.err);
+		}
+	}
+
+	public void checkTokens(String template, String expected) {
+		checkTokens(template, expected, '<', '>');
+	}
 
     public String java(String mainClassName, String extraCLASSPATH, String workingDirName) throws InterruptedException, IOException {
         String classpathOption = "-classpath";
@@ -325,62 +474,62 @@ public abstract class BaseTest {
 	}
 
 
-    public void checkTokens(String template, String expected,
-                            char delimiterStartChar, char delimiterStopChar)
-    {
-        STLexer lexer =
-            new STLexer(STGroup.DEFAULT_ERR_MGR,
-                        new ANTLRStringStream(template),
-                        null,
-                        delimiterStartChar,
-                        delimiterStopChar);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        StringBuilder buf = new StringBuilder();
-        buf.append("[");
-        int i = 1;
-        Token t = tokens.LT(i);
-        while ( t.getType()!=Token.EOF ) {
-            if ( i>1 ) buf.append(", ");
-            buf.append(t);
-            i++;
-            t = tokens.LT(i);
-        }
-        buf.append("]");
-        String result = buf.toString();
-        assertEquals(expected, result);
-    }
+	public void checkTokens(String template, String expected,
+							char delimiterStartChar, char delimiterStopChar)
+	{
+		STLexer lexer =
+			new STLexer(STGroup.DEFAULT_ERR_MGR,
+						new ANTLRStringStream(template),
+						null,
+						delimiterStartChar,
+						delimiterStopChar);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		StringBuilder buf = new StringBuilder();
+		buf.append("[");
+		int i = 1;
+		Token t = tokens.LT(i);
+		while ( t.getType()!=Token.EOF ) {
+			if ( i>1 ) buf.append(", ");
+			buf.append(t);
+			i++;
+			t = tokens.LT(i);
+		}
+		buf.append("]");
+		String result = buf.toString();
+		assertEquals(expected, result);
+	}
 
-    public static class User {
-        public int id;
-        public String name;
-        public User(int id, String name) { this.id = id; this.name = name; }
-        public boolean isManager() { return true; }
-        public boolean hasParkingSpot() { return true; }
-        public String getName() { return name; }
-    }
+	public static class User {
+		public int id;
+		public String name;
+		public User(int id, String name) { this.id = id; this.name = name; }
+		public boolean isManager() { return true; }
+		public boolean hasParkingSpot() { return true; }
+		public String getName() { return name; }
+	}
 
-    public static class HashableUser extends User {
-        public HashableUser(int id, String name) { super(id, name); }
-        @Override
-        public int hashCode() {
-            return id;
-        }
+	public static class HashableUser extends User {
+		public HashableUser(int id, String name) { super(id, name); }
+		@Override
+		public int hashCode() {
+			return id;
+		}
 
-        @Override
-        public boolean equals(Object o) {
-            if ( o instanceof HashableUser ) {
-                HashableUser hu = (HashableUser)o;
-                return this.id == hu.id && this.name.equals(hu.name);
-            }
-            return false;
-        }
-    }
+		@Override
+		public boolean equals(Object o) {
+			if ( o instanceof HashableUser ) {
+				HashableUser hu = (HashableUser)o;
+				return this.id == hu.id && this.name.equals(hu.name);
+			}
+			return false;
+		}
+	}
 
-    public static String getRandomDir() {
+	public static String getRandomDir() {
  		File randomDir = new File(tmpdir, "dir" + String.valueOf((int)(Math.random() * 100000)));
 		randomDir.mkdirs();
 		return randomDir.getAbsolutePath();
-    }
+	}
 
     /**
      * Removes the specified file or directory, and all subdirectories.
@@ -447,39 +596,39 @@ public abstract class BaseTest {
 				});
 	}
 
-    /**
-     * Builds an error manager to make the tests fail upon any error.
-     * @return such {@link ErrorManager}.
-     */
-    protected ErrorManager buildErrorManager() {
-        return
-            new ErrorManager(
-                new STErrorListener()
-                {
-                    @Override
-                    public void compileTimeError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
+	/**
+	 * Builds an error manager to make the tests fail upon any error.
+	 * @return such {@link ErrorManager}.
+	 */
+	protected ErrorManager buildErrorManager() {
+		return
+			new ErrorManager(
+				new STErrorListener()
+				{
+					@Override
+					public void compileTimeError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
 
-                    @Override
-                    public void runTimeError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
+					@Override
+					public void runTimeError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
 
-                    @Override
-                    public void IOError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
+					@Override
+					public void IOError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
 
-                    @Override
-                    public void internalError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
-                });
-    }
+					@Override
+					public void internalError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
+				});
+	}
 
 }

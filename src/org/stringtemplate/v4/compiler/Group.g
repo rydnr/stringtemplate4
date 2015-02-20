@@ -235,15 +235,15 @@ def[String prefix] : templateDefOrRegion[prefix] | dictDef ;
 
 fragment annotations returns [List<STAnnotation> result]
 @init { result = new ArrayList<STAnnotation>(); }
-    :  (a=annotation { result.add(a); })*
-    ;
+	:  (a=annotation { result.add(a); })*
+	;
 
 fragment annotation returns [STAnnotation result]
-    :  '@' name=ID '(' value=STRING ')'
-        {
-            result = new STAnnotation($name.text, $value.text);
-        }
-    ;
+	:  '@' name=ID '(' value=STRING ')'
+		{
+			result = new STAnnotation($name.text, $value.text);
+		}
+	;
 
 templateDefOrRegion[String prefix]
 	:	(	'@' enclosing=ID '.' name=ID '(' ')' templateDefOrRegionBody[prefix, $name, $enclosing, null, null]
