@@ -50,8 +50,12 @@ public class TestRenderers extends BaseTest {
 
     String javaVersion = System.getProperty("java.version");
 
-    // Make sure to use the US Locale during the tests
-    private Locale origLocale;
+	@Before
+	@Override
+	public void setUp() {
+		origLocale = Locale.getDefault();
+		Locale.setDefault(Locale.US);
+	}
 
     @Before
     @Override

@@ -30,6 +30,7 @@ package org.stringtemplate.v4.test;
 import org.junit.*;
 import org.stringtemplate.v4.*;
 import org.stringtemplate.v4.misc.ErrorBuffer;
+import org.stringtemplate.v4.misc.ErrorManager;
 
 import static org.junit.Assert.assertEquals;
 
@@ -67,6 +68,7 @@ public class TestRegions extends BaseTest {
         writeFile(dir, "g1.stg", "a() ::= <<[<@r()>]>>\n");
         writeFile(dir, "g2.stg", "@a.r() ::= <<foo>>\n");
 
+<<<<<<< HEAD
         STGroup group1 = new STGroupFile(dir+"/g1.stg");
         STGroup group2 = new STGroupFile(dir+"/g2.stg");
         group2.importTemplates(group1); // define r in g2
@@ -75,6 +77,19 @@ public class TestRegions extends BaseTest {
         String result = st.render();
         assertEquals(expected, result);
     }
+=======
+		STGroup group1 = new STGroupFile(dir+"/g1.stg");
+        ErrorManager errorManager = buildErrorManager();
+        group1.errMgr = errorManager;
+		STGroup group2 = new STGroupFile(dir+"/g2.stg");
+        group2.errMgr = errorManager;
+		group2.importTemplates(group1); // define r in g2
+		ST st = group2.getInstanceOf("a");
+		String expected = "[foo]";
+		String result = st.render();
+		assertEquals(expected, result);
+	}
+>>>>>>> b6a91ae (Added support for template annotations.)
 
     @Test public void testDefineRegionInSubgroupOneInSubdir() throws Exception {
         String dir = getRandomDir();
@@ -221,14 +236,14 @@ public class TestRegions extends BaseTest {
         String g = "@t.() ::= \"\"\n";
         writeFile(dir, "g.stg", g);
 
-        STGroupFile group = new STGroupFile(dir+"/g.stg");
-        ErrorBuffer errors = new ErrorBuffer();
-        group.setListener(errors);
-        group.load();
-        String expected = "g.stg 1:3: missing ID at '('"+newline;
-        String result = errors.toString();
-        assertEquals(expected, result);
-    }
+		STGroupFile group = new STGroupFile(dir+"/g.stg");
+		ErrorBuffer errors = new ErrorBuffer();
+		group.setListener(errors);
+		group.load();
+		String expected = "g.stg 1:3: missing ID at '('"+newline;
+		String result = errors.toString();
+		Assert.assertTrue(result.startsWith(expected));
+	}
 
     @Test public void testIndentBeforeRegionIsIgnored() throws Exception {
         String dir = getRandomDir();

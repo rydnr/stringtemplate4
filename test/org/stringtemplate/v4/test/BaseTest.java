@@ -31,12 +31,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.Token;
+import org.junit.Assert;
 import org.junit.Before;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.compiler.Compiler;
 import org.stringtemplate.v4.compiler.STLexer;
+import org.stringtemplate.v4.misc.ErrorManager;
 import org.stringtemplate.v4.misc.Misc;
+import org.stringtemplate.v4.misc.STMessage;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -373,10 +376,10 @@ public abstract class BaseTest {
         }
     }
 
-    public String getRandomDir() {
-        File randomDir = new File(tmpdir, "dir" + String.valueOf((int)(Math.random() * 100000)));
-        randomDir.mkdirs();
-        return randomDir.getAbsolutePath();
+    public static String getRandomDir() {
+ 		File randomDir = new File(tmpdir, "dir" + String.valueOf((int)(Math.random() * 100000)));
+		randomDir.mkdirs();
+		return randomDir.getAbsolutePath();
     }
 
     /**
@@ -407,6 +410,41 @@ public abstract class BaseTest {
      */
     public static void deleteFile(String file) {
         deleteFile(new File(file));
+    }
+
+    /**
+     * Builds an error manager to make the tests fail upon any error.
+     * @return such {@link ErrorManager}.
+     */
+    protected ErrorManager buildErrorManager() {
+        return
+            new ErrorManager(
+                new STErrorListener()
+                {
+                    @Override
+                    public void compileTimeError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+
+                    @Override
+                    public void runTimeError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+
+                    @Override
+                    public void IOError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+
+                    @Override
+                    public void internalError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+                });
     }
 
 }

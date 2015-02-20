@@ -7,12 +7,12 @@
  *  modification, are permitted provided that the following conditions
  *  are met:
  *  1. Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
+ *	 notice, this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
+ *	 notice, this list of conditions and the following disclaimer in the
+ *	 documentation and/or other materials provided with the distribution.
  *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
+ *	 derived from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  *  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -101,32 +101,32 @@ public class STGroup {
         RESERVED_CHARACTERS[']'] = true;
     }
 
-    /** When we use key as a value in a dictionary, this is how we signify. */
-    public static final String DICT_KEY = "key";
-    public static final String DEFAULT_KEY = "default";
+	/** When we use key as a value in a dictionary, this is how we signify. */
+	public static final String DICT_KEY = "key";
+	public static final String DEFAULT_KEY = "default";
 
-    /** The encoding to use for loading files. Defaults to UTF-8. */
-    public String encoding = "UTF-8";
+	/** The encoding to use for loading files. Defaults to UTF-8. */
+	public String encoding = "UTF-8";
 
-    /** Every group can import templates/dictionaries from other groups.
-     *  The list must be synchronized (see {@link STGroup#importTemplates}).
-     */
-    protected final List<STGroup> imports = Collections.synchronizedList(new ArrayList<STGroup>());
+	/** Every group can import templates/dictionaries from other groups.
+	 *  The list must be synchronized (see {@link STGroup#importTemplates}).
+	 */
+	protected final List<STGroup> imports = Collections.synchronizedList(new ArrayList<STGroup>());
 
-    protected final List<STGroup> importsToClearOnUnload = Collections.synchronizedList(new ArrayList<STGroup>());
+	protected final List<STGroup> importsToClearOnUnload = Collections.synchronizedList(new ArrayList<STGroup>());
 
-    public char delimiterStartChar = '<'; // Use <expr> by default
-    public char delimiterStopChar = '>';
+	public char delimiterStartChar = '<'; // Use <expr> by default
+	public char delimiterStopChar = '>';
 
-    /** Maps template name to {@link CompiledST} object. This map is synchronized. */
-    protected Map<String, CompiledST> templates =
-        Collections.synchronizedMap(new LinkedHashMap<String, CompiledST>());
+	/** Maps template name to {@link CompiledST} object. This map is synchronized. */
+	protected Map<String, CompiledST> templates =
+		Collections.synchronizedMap(new LinkedHashMap<String, CompiledST>());
 
-    /** Maps dictionary names to {@link Map} objects representing the dictionaries
-     *  defined by the user like {@code typeInitMap ::= ["int":"0"]}.
-     */
-    protected Map<String, Map<String,Object>> dictionaries =
-        Collections.synchronizedMap(new HashMap<String, Map<String,Object>>());
+	/** Maps dictionary names to {@link Map} objects representing the dictionaries
+	 *  defined by the user like {@code typeInitMap ::= ["int":"0"]}.
+	 */
+	protected Map<String, Map<String,Object>> dictionaries =
+		Collections.synchronizedMap(new HashMap<String, Map<String,Object>>());
 
     /** A dictionary that allows people to register a renderer for
      *  a particular kind of object for any template evaluated relative to this
@@ -168,10 +168,10 @@ public class STGroup {
         adaptors = Collections.synchronizedMap(registry);
     }
 
-    /** Used to indicate that the template doesn't exist.
-     *  Prevents duplicate group file loads and unnecessary file checks.
-     */
-    protected static final CompiledST NOT_FOUND_ST = new CompiledST();
+	/** Used to indicate that the template doesn't exist.
+	 *  Prevents duplicate group file loads and unnecessary file checks.
+	 */
+	protected static final CompiledST NOT_FOUND_ST = new CompiledST();
 
     public static final ErrorManager DEFAULT_ERR_MGR = new ErrorManager();
 
@@ -198,12 +198,12 @@ public class STGroup {
      */
     public ErrorManager errMgr = STGroup.DEFAULT_ERR_MGR;
 
-    public STGroup() { }
+	public STGroup() { }
 
-    public STGroup(char delimiterStartChar, char delimiterStopChar) {
-        this.delimiterStartChar = delimiterStartChar;
-        this.delimiterStopChar = delimiterStopChar;
-    }
+	public STGroup(char delimiterStartChar, char delimiterStopChar) {
+		this.delimiterStartChar = delimiterStartChar;
+		this.delimiterStopChar = delimiterStopChar;
+	}
 
     /** The primary means of getting an instance of a template from this
      *  group. Names must be absolute, fully-qualified names like {@code /a/b}.
@@ -260,12 +260,12 @@ public class STGroup {
         return st;
     }
 
-    /** Is this template defined in this group or from this group below?
-     *  Names must be absolute, fully-qualified names like {@code /a/b}.
-     */
-    public boolean isDefined(String name) {
-        return lookupTemplate(name)!=null;
-    }
+	/** Is this template defined in this group or from this group below?
+	 *  Names must be absolute, fully-qualified names like {@code /a/b}.
+	 */
+	public boolean isDefined(String name) {
+		return lookupTemplate(name)!=null;
+	}
 
     /** Look up a fully-qualified name. */
     public CompiledST lookupTemplate(String name) {
@@ -306,13 +306,13 @@ public class STGroup {
         importsToClearOnUnload.clear();
     }
 
-    /** Load st from disk if directory or load whole group file if .stg file (then
-     *  return just one template). {@code name} is fully-qualified.
-     */
-    protected CompiledST load(String name) { return null; }
+	/** Load st from disk if directory or load whole group file if .stg file (then
+	 *  return just one template). {@code name} is fully-qualified.
+	 */
+	protected CompiledST load(String name) { return null; }
 
-    /** Force a load if it makes sense for the group. */
-    public void load() { }
+	/** Force a load if it makes sense for the group. */
+	public void load() { }
 
     /**
      * Determines if a specified character may be used as a user-specified delimiter.
@@ -330,19 +330,19 @@ public class STGroup {
             && RESERVED_CHARACTERS[c];
     }
 
-    protected CompiledST lookupImportedTemplate(String name) {
-        if ( imports.size()==0 ) return null;
-        for (STGroup g : imports) {
-            if ( verbose ) System.out.println("checking "+g.getName()+" for imported "+name);
-            CompiledST code = g.lookupTemplate(name);
-            if ( code!=null ) {
-                if ( verbose ) System.out.println(g.getName()+".lookupImportedTemplate("+name+") found");
-                return code;
-            }
-        }
-        if ( verbose ) System.out.println(name+" not found in "+getName()+" imports");
-        return null;
-    }
+	protected CompiledST lookupImportedTemplate(String name) {
+		if ( imports.size()==0 ) return null;
+		for (STGroup g : imports) {
+			if ( verbose ) System.out.println("checking "+g.getName()+" for imported "+name);
+			CompiledST code = g.lookupTemplate(name);
+			if ( code!=null ) {
+				if ( verbose ) System.out.println(g.getName()+".lookupImportedTemplate("+name+") found");
+				return code;
+			}
+		}
+		if ( verbose ) System.out.println(name+" not found in "+getName()+" imports");
+		return null;
+	}
 
     public CompiledST rawGetTemplate(String name) { return templates.get(name); }
     public Map<String,Object> rawGetDictionary(String name) { return dictionaries.get(name); }
@@ -377,126 +377,156 @@ public class STGroup {
                               a, template, null);
     }
 
-    public CompiledST defineTemplate(String fullyQualifiedTemplateName,
-                                     Token nameT,
-                                     List<FormalArgument> args,
-                                     String template,
-                                     Token templateToken)
-    {
-        if ( verbose ) System.out.println("defineTemplate("+fullyQualifiedTemplateName+")");
-        if ( fullyQualifiedTemplateName==null || fullyQualifiedTemplateName.length()==0 ) {
-            throw new IllegalArgumentException("empty template name");
-        }
-        if ( fullyQualifiedTemplateName.indexOf('.')>=0 ) {
-            throw new IllegalArgumentException("cannot have '.' in template names");
-        }
-        template = Misc.trimOneStartingNewline(template);
-        template = Misc.trimOneTrailingNewline(template);
-        // compile, passing in templateName as enclosing name for any embedded regions
-        CompiledST code = compile(getFileName(), fullyQualifiedTemplateName, args, template, templateToken);
-        code.name = fullyQualifiedTemplateName;
-        rawDefineTemplate(fullyQualifiedTemplateName, code, nameT);
-        code.defineArgDefaultValueTemplates(this);
-        code.defineImplicitlyDefinedTemplates(this); // define any anonymous subtemplates
+	public CompiledST defineTemplate(String fullyQualifiedTemplateName,
+									 Token nameT,
+									 List<FormalArgument> args,
+									 String template,
+									 Token templateToken)
+	{
+		return defineTemplate(fullyQualifiedTemplateName, nameT, args, template, templateToken, new ArrayList<STAnnotation>(0));
+	}
+	
+	public CompiledST defineTemplate(String fullyQualifiedTemplateName,
+									 Token nameT,
+									 List<FormalArgument> args,
+									 String template,
+									 Token templateToken,
+									 List<STAnnotation> annotations)
+	{
+		if ( verbose ) System.out.println("defineTemplate("+fullyQualifiedTemplateName+")");
+		if ( fullyQualifiedTemplateName==null || fullyQualifiedTemplateName.length()==0 ) {
+			throw new IllegalArgumentException("empty template name");
+		}
+		if ( fullyQualifiedTemplateName.indexOf('.')>=0 ) {
+			throw new IllegalArgumentException("cannot have '.' in template names");
+		}
+		template = Misc.trimOneStartingNewline(template);
+		template = Misc.trimOneTrailingNewline(template);
+		// compile, passing in templateName as enclosing name for any embedded regions
+		CompiledST code = compile(getFileName(), fullyQualifiedTemplateName, args, template, templateToken);
+		code.name = fullyQualifiedTemplateName;
+		rawDefineTemplate(fullyQualifiedTemplateName, code, nameT);
+		code.defineArgDefaultValueTemplates(this);
+		code.defineImplicitlyDefinedTemplates(this); // define any anonymous subtemplates
+        code.annotations = annotations;
 
-        return code;
-    }
+		return code;
+	}
 
-    /** Make name and alias for target.  Replace any previous definition of name. */
-    public CompiledST defineTemplateAlias(Token aliasT, Token targetT) {
-        String alias = aliasT.getText();
-        String target = targetT.getText();
-        CompiledST targetCode = rawGetTemplate("/"+target);
-        if ( targetCode==null ){
-            errMgr.compileTimeError(ErrorType.ALIAS_TARGET_UNDEFINED, null, aliasT, alias, target);
-            return null;
-        }
-        rawDefineTemplate("/" + alias, targetCode, aliasT);
-        return targetCode;
-    }
+	/** Make name and alias for target.  Replace any previous definition of name. */
+	public CompiledST defineTemplateAlias(Token aliasT, Token targetT) {
+		String alias = aliasT.getText();
+		String target = targetT.getText();
+		CompiledST targetCode = rawGetTemplate("/"+target);
+		if ( targetCode==null ){
+			errMgr.compileTimeError(ErrorType.ALIAS_TARGET_UNDEFINED, null, aliasT, alias, target);
+			return null;
+		}
+		rawDefineTemplate("/" + alias, targetCode, aliasT);
+		return targetCode;
+	}
 
-    public CompiledST defineRegion(String enclosingTemplateName,
-                                   Token regionT,
-                                   String template,
-                                   Token templateToken)
-    {
-        String name = regionT.getText();
-        template = Misc.trimOneStartingNewline(template);
-        template = Misc.trimOneTrailingNewline(template);
-        CompiledST code = compile(getFileName(), enclosingTemplateName, null, template, templateToken);
-        String mangled = getMangledRegionName(enclosingTemplateName, name);
+	public CompiledST defineRegion(String enclosingTemplateName,
+								   Token regionT,
+								   String template,
+								   Token templateToken)
+	{
+		String name = regionT.getText();
+		template = Misc.trimOneStartingNewline(template);
+		template = Misc.trimOneTrailingNewline(template);
+		CompiledST code = compile(getFileName(), enclosingTemplateName, null, template, templateToken);
+		String mangled = getMangledRegionName(enclosingTemplateName, name);
 
-        if ( lookupTemplate(mangled)==null ) {
-            errMgr.compileTimeError(ErrorType.NO_SUCH_REGION, templateToken, regionT,
-                                          enclosingTemplateName, name);
-            return new CompiledST();
-        }
-        code.name = mangled;
-        code.isRegion = true;
-        code.regionDefType = ST.RegionType.EXPLICIT;
-        code.templateDefStartToken = regionT;
+		if ( lookupTemplate(mangled)==null ) {
+			errMgr.compileTimeError(ErrorType.NO_SUCH_REGION, templateToken, regionT,
+										  enclosingTemplateName, name);
+			return new CompiledST();
+		}
+		code.name = mangled;
+		code.isRegion = true;
+		code.regionDefType = ST.RegionType.EXPLICIT;
+		code.templateDefStartToken = regionT;
 
-        rawDefineTemplate(mangled, code, regionT);
-        code.defineArgDefaultValueTemplates(this);
-        code.defineImplicitlyDefinedTemplates(this);
+		rawDefineTemplate(mangled, code, regionT);
+		code.defineArgDefaultValueTemplates(this);
+		code.defineImplicitlyDefinedTemplates(this);
 
-        return code;
-    }
+		return code;
+	}
 
-    public void defineTemplateOrRegion(
-        String fullyQualifiedTemplateName,
-        String regionSurroundingTemplateName,
-        Token templateToken,
-        String template,
-        Token nameToken,
-        List<FormalArgument> args)
-    {
-        try {
-            if ( regionSurroundingTemplateName!=null ) {
-                defineRegion(regionSurroundingTemplateName, nameToken, template, templateToken);
-            }
-            else {
-                defineTemplate(fullyQualifiedTemplateName, nameToken, args, template, templateToken);
-            }
-        }
-        catch (STException e) {
-            // after getting syntax error in a template, we emit msg
-            // and throw exception to blast all the way out to here.
-        }
-    }
+	public void defineTemplateOrRegion(
+		String fullyQualifiedTemplateName,
+		String regionSurroundingTemplateName,
+		Token templateToken,
+		String template,
+		Token nameToken,
+		List<FormalArgument> args)
+	{
+		defineTemplateOrRegion(
+			fullyQualifiedTemplateName,
+			regionSurroundingTemplateName,
+			templateToken,
+			template,
+			nameToken,
+			args,
+			new ArrayList<STAnnotation>(0));
+	}
+	
+	public void defineTemplateOrRegion(
+		String fullyQualifiedTemplateName,
+		String regionSurroundingTemplateName,
+		Token templateToken,
+		String template,
+		Token nameToken,
+				List<FormalArgument> args,
+		List<STAnnotation> annotations)
+	{
+		try {
+			if ( regionSurroundingTemplateName!=null ) {
+				defineRegion(regionSurroundingTemplateName, nameToken, template, templateToken);
+			}
+			else {
+				defineTemplate(fullyQualifiedTemplateName, nameToken, args, template, templateToken, annotations);
+			}
+		}
+		catch (STException e) {
+			// after getting syntax error in a template, we emit msg
+			// and throw exception to blast all the way out to here.
+		}
+	}
 
-    public void rawDefineTemplate(String name, CompiledST code, Token defT) {
-        CompiledST prev = rawGetTemplate(name);
-        if ( prev!=null ) {
-            if ( !prev.isRegion ) {
-                errMgr.compileTimeError(ErrorType.TEMPLATE_REDEFINITION, null, defT);
-                return;
-            }
-            else {
-                if ( code.regionDefType!=ST.RegionType.IMPLICIT &&
-                     prev.regionDefType==ST.RegionType.EMBEDDED )
-                {
-                    errMgr.compileTimeError(ErrorType.EMBEDDED_REGION_REDEFINITION,
-                                            null,
-                                            defT,
-                                            getUnMangledTemplateName(name));
-                    return;
-                }
-                else if ( code.regionDefType==ST.RegionType.IMPLICIT ||
-                          prev.regionDefType==ST.RegionType.EXPLICIT )
-                {
-                    errMgr.compileTimeError(ErrorType.REGION_REDEFINITION,
-                                            null,
-                                            defT,
-                                            getUnMangledTemplateName(name));
-                    return;
-                }
-            }
-        }
-        code.nativeGroup = this;
-        code.templateDefStartToken = defT;
-        templates.put(name, code);
-    }
+	public void rawDefineTemplate(String name, CompiledST code, Token defT) {
+		CompiledST prev = rawGetTemplate(name);
+		if ( prev!=null ) {
+			if ( !prev.isRegion ) {
+				errMgr.compileTimeError(ErrorType.TEMPLATE_REDEFINITION, null, defT);
+				return;
+			}
+			if ( prev.isRegion ) {
+				if ( code.regionDefType!=ST.RegionType.IMPLICIT &&
+					 prev.regionDefType==ST.RegionType.EMBEDDED )
+				{
+					errMgr.compileTimeError(ErrorType.EMBEDDED_REGION_REDEFINITION,
+											null,
+											defT,
+											getUnMangledTemplateName(name));
+					return;
+				}
+				else if ( code.regionDefType==ST.RegionType.IMPLICIT ||
+						  prev.regionDefType==ST.RegionType.EXPLICIT )
+				{
+					errMgr.compileTimeError(ErrorType.REGION_REDEFINITION,
+											null,
+											defT,
+											getUnMangledTemplateName(name));
+					return;
+				}
+			}
+		}
+		code.nativeGroup = this;
+		code.templateDefStartToken = defT;
+		templates.put(name, code);
+	}
 
     public void undefineTemplate(String name) {
         templates.remove(name);
@@ -526,14 +556,14 @@ public class STGroup {
         return "/region__"+enclosingTemplateName+"__"+name;
     }
 
-    /** Return {@code "t.foo"} from {@code "/region__/t__foo"} */
-    public static String getUnMangledTemplateName(String mangledName) {
-        String t = mangledName.substring("/region__".length(),
-                                         mangledName.lastIndexOf("__"));
-        String r = mangledName.substring(mangledName.lastIndexOf("__")+2,
-                                         mangledName.length());
-        return t+'.'+r;
-    }
+	/** Return {@code "t.foo"} from {@code "/region__/t__foo"} */
+	public static String getUnMangledTemplateName(String mangledName) {
+		String t = mangledName.substring("/region__".length(),
+										 mangledName.lastIndexOf("__"));
+		String r = mangledName.substring(mangledName.lastIndexOf("__")+2,
+										 mangledName.length());
+		return t+'.'+r;
+	}
 
     /** Define a map for this group.
      * <p>
@@ -543,14 +573,14 @@ public class STGroup {
         dictionaries.put(name, mapping);
     }
 
-    /**
-     * Make this group import templates/dictionaries from {@code g}.
-     *<p>
-     * On unload imported templates are unloaded but stay in the {@link #imports} list.</p>
-     */
-    public void importTemplates(STGroup g) {
-        importTemplates(g, false);
-    }
+	/**
+	 * Make this group import templates/dictionaries from {@code g}.
+	 *<p>
+	 * On unload imported templates are unloaded but stay in the {@link #imports} list.</p>
+	 */
+	public void importTemplates(STGroup g) {
+		importTemplates(g, false);
+	}
 
     /** Import template files, directories, and group files.
      *  Priority is given to templates defined in the current group;
@@ -847,27 +877,35 @@ public class STGroup {
         return url;
     }
 
-    @Override
-    public String toString() { return getName(); }
+	@Override
+	public String toString() { return getName(); }
 
-    public String show() {
-        StringBuilder buf = new StringBuilder();
-        if ( imports.size()!=0 ) buf.append(" : "+imports);
-        for (String name : templates.keySet()) {
-            CompiledST c = rawGetTemplate(name);
-            if ( c.isAnonSubtemplate || c==NOT_FOUND_ST ) continue;
-            int slash = name.lastIndexOf('/');
-            name = name.substring(slash+1, name.length());
-            buf.append(name);
-            buf.append('(');
-            if ( c.formalArguments!=null ) buf.append( Misc.join(c.formalArguments.values().iterator(), ",") );
-            buf.append(')');
-            buf.append(" ::= <<"+Misc.newline);
-            buf.append(c.template+ Misc.newline);
-            buf.append(">>"+Misc.newline);
-        }
-        return buf.toString();
-    }
+	public String show() {
+		StringBuilder buf = new StringBuilder();
+		if ( imports.size()!=0 ) buf.append(" : "+imports);
+		for (String name : templates.keySet()) {
+			CompiledST c = rawGetTemplate(name);
+			if ( c.isAnonSubtemplate || c==NOT_FOUND_ST ) continue;
+			for (STAnnotation annotation : c.annotations) {
+				buf.append('@');
+				buf.append(annotation.getName());
+				buf.append('(');
+				buf.append(annotation.getValue());
+				buf.append(')');
+				buf.append(Misc.newline);
+			}
+			int slash = name.lastIndexOf('/');
+			name = name.substring(slash+1, name.length());
+			buf.append(name);
+			buf.append('(');
+			if ( c.formalArguments!=null ) buf.append( Misc.join(c.formalArguments.values().iterator(), ",") );
+			buf.append(')');
+			buf.append(" ::= <<"+Misc.newline);
+			buf.append(c.template+ Misc.newline);
+			buf.append(">>"+Misc.newline);
+		}
+		return buf.toString();
+	}
 
     public STErrorListener getListener() {
         return errMgr.listener;
