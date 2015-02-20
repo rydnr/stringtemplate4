@@ -7,12 +7,12 @@
  modification, are permitted provided that the following conditions
  are met:
  1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+	notice, this list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+	notice, this list of conditions and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
  3. The name of the author may not be used to endorse or promote products
-    derived from this software without specific prior written permission.
+	derived from this software without specific prior written permission.
 
  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -67,9 +67,9 @@ import static org.junit.Assert.assertTrue;
 
 public abstract class BaseTest {
 	public static final String pathSep = System.getProperty("path.separator");
-    public static final String tmpdir = System.getProperty("java.io.tmpdir") + File.separator;
+	public static final String tmpdir = System.getProperty("java.io.tmpdir") + File.separator;
 	public static final boolean interactive = Boolean.parseBoolean(System.getProperty("test.interactive"));
-    public static final String newline = Misc.newline;
+	public static final String newline = Misc.newline;
 
     public String tmpdir = null;
 
@@ -320,9 +320,9 @@ public abstract class BaseTest {
         }
     }
 
-    public void checkTokens(String template, String expected) {
-        checkTokens(template, expected, '<', '>');
-    }
+	public void checkTokens(String template, String expected) {
+		checkTokens(template, expected, '<', '>');
+	}
 
 
     public void checkTokens(String template, String expected,
@@ -376,11 +376,11 @@ public abstract class BaseTest {
         }
     }
 
-    public static String getRandomDir() {
+	public static String getRandomDir() {
  		File randomDir = new File(tmpdir, "dir" + String.valueOf((int)(Math.random() * 100000)));
 		randomDir.mkdirs();
 		return randomDir.getAbsolutePath();
-    }
+	}
 
     /**
      * Removes the specified file or directory, and all subdirectories.
@@ -412,39 +412,39 @@ public abstract class BaseTest {
         deleteFile(new File(file));
     }
 
-    /**
-     * Builds an error manager to make the tests fail upon any error.
-     * @return such {@link ErrorManager}.
-     */
-    protected ErrorManager buildErrorManager() {
-        return
-            new ErrorManager(
-                new STErrorListener()
-                {
-                    @Override
-                    public void compileTimeError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
+	/**
+	 * Builds an error manager to make the tests fail upon any error.
+	 * @return such {@link ErrorManager}.
+	 */
+	protected ErrorManager buildErrorManager() {
+		return
+			new ErrorManager(
+				new STErrorListener()
+				{
+					@Override
+					public void compileTimeError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
 
-                    @Override
-                    public void runTimeError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
+					@Override
+					public void runTimeError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
 
-                    @Override
-                    public void IOError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
+					@Override
+					public void IOError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
 
-                    @Override
-                    public void internalError(final STMessage msg)
-                    {
-                        Assert.fail(msg.toString());
-                    }
-                });
-    }
+					@Override
+					public void internalError(final STMessage msg)
+					{
+						Assert.fail(msg.toString());
+					}
+				});
+	}
 
 }

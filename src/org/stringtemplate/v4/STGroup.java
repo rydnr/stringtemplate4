@@ -408,7 +408,7 @@ public class STGroup {
 		rawDefineTemplate(fullyQualifiedTemplateName, code, nameT);
 		code.defineArgDefaultValueTemplates(this);
 		code.defineImplicitlyDefinedTemplates(this); // define any anonymous subtemplates
-        code.annotations = annotations;
+		code.annotations = annotations;
 
 		return code;
 	}
