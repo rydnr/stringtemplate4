@@ -344,6 +344,27 @@ public class STGroup {
 		return null;
 	}
 
+	public CompiledST rawGetTemplate(String name) { return templates.get(name); }
+	public Map<String,Object> rawGetDictionary(String name) { return dictionaries.get(name); }
+	public boolean isDictionary(String name) { return dictionaries.get(name)!=null; }
+
+	/** for testing */
+	public CompiledST defineTemplate(String templateName, String template) {
+		if ( templateName.charAt(0)!='/' ) templateName = "/"+templateName;
+		try {
+			CompiledST impl =
+				defineTemplate(templateName,
+							   new CommonToken(GroupParser.ID, templateName),
+							   null, template, null);
+			return impl;
+		}
+		catch (STException se) {
+			// we have reported the error; the exception just blasts us
+			// out of parsing this template
+		}
+		return null;
+	}
+
     public CompiledST rawGetTemplate(String name) { return templates.get(name); }
     public Map<String,Object> rawGetDictionary(String name) { return dictionaries.get(name); }
     public boolean isDictionary(String name) { return dictionaries.get(name)!=null; }
@@ -408,7 +429,7 @@ public class STGroup {
 		rawDefineTemplate(fullyQualifiedTemplateName, code, nameT);
 		code.defineArgDefaultValueTemplates(this);
 		code.defineImplicitlyDefinedTemplates(this); // define any anonymous subtemplates
-		code.annotations = annotations;
+        code.annotations = annotations;
 
 		return code;
 	}
@@ -532,29 +553,29 @@ public class STGroup {
         templates.remove(name);
     }
 
-    /** Compile a template. */
-    public CompiledST compile(String srcName,
-                              String name,
-                              List<FormalArgument> args,
-                              String template,
-                              Token templateToken) // for error location
-    {
-        //System.out.println("STGroup.compile: "+enclosingTemplateName);
-        Compiler c = new Compiler(this);
-        return c.compile(srcName, name, args, template, templateToken);
-    }
+	/** Compile a template. */
+	public CompiledST compile(String srcName,
+							  String name,
+							  List<FormalArgument> args,
+							  String template,
+							  Token templateToken) // for error location
+	{
+		//System.out.println("STGroup.compile: "+enclosingTemplateName);
+		Compiler c = new Compiler(this);
+		return c.compile(srcName, name, args, template, templateToken);
+	}
 
-    /** The {@code "foo"} of {@code t() ::= "<@foo()>"} is mangled to
-     *  {@code "/region__/t__foo"}
-     */
-    public static String getMangledRegionName(String enclosingTemplateName,
-                                              String name)
-    {
-        if ( enclosingTemplateName.charAt(0)!='/' ) {
-            enclosingTemplateName = '/'+enclosingTemplateName;
-        }
-        return "/region__"+enclosingTemplateName+"__"+name;
-    }
+	/** The {@code "foo"} of {@code t() ::= "<@foo()>"} is mangled to
+	 *  {@code "/region__/t__foo"}
+	 */
+	public static String getMangledRegionName(String enclosingTemplateName,
+											  String name)
+	{
+		if ( enclosingTemplateName.charAt(0)!='/' ) {
+			enclosingTemplateName = '/'+enclosingTemplateName;
+		}
+		return "/region__"+enclosingTemplateName+"__"+name;
+	}
 
 	/** Return {@code "t.foo"} from {@code "/region__/t__foo"} */
 	public static String getUnMangledTemplateName(String mangledName) {
@@ -565,13 +586,13 @@ public class STGroup {
 		return t+'.'+r;
 	}
 
-    /** Define a map for this group.
-     * <p>
-     * Not thread safe...do not keep adding these while you reference them.</p>
-     */
-    public void defineDictionary(String name, Map<String,Object> mapping) {
-        dictionaries.put(name, mapping);
-    }
+	/** Define a map for this group.
+	 * <p>
+	 * Not thread safe...do not keep adding these while you reference them.</p>
+	 */
+	public void defineDictionary(String name, Map<String,Object> mapping) {
+		dictionaries.put(name, mapping);
+	}
 
 	/**
 	 * Make this group import templates/dictionaries from {@code g}.
@@ -780,14 +801,131 @@ public class STGroup {
         return (ModelAdaptor<? super T>) adaptors.get(attributeType);
     }
 
-    /** Register a renderer for all objects of a particular "kind" for all
-     *  templates evaluated relative to this group.  Use {@code r} to render if
-     *  object in question is an instance of {@code attributeType}.  Recursively
-     *  set renderer into all import groups.
-     */
-    public <T> void registerRenderer(Class<T> attributeType, AttributeRenderer<? super T> r) {
-        registerRenderer(attributeType, r, true);
-    }
+	/** Register a renderer for all objects of a particular "kind" for all
+	 *  templates evaluated relative to this group.  Use {@code r} to render if
+	 *  object in question is an instance of {@code attributeType}.  Recursively
+	 *  set renderer into all import groups.
+	 */
+	public void registerRenderer(Class<?> attributeType, AttributeRenderer r) {
+		registerRenderer(attributeType, r, true);
+	}
+
+	public void registerRenderer(Class<?> attributeType, AttributeRenderer r, boolean recursive) {
+		if ( attributeType.isPrimitive() ) {
+			throw new IllegalArgumentException("can't register renderer for primitive type "+
+											   attributeType.getSimpleName());
+		}
+
+		if ( renderers == null ) {
+			renderers = Collections.synchronizedMap(new TypeRegistry<AttributeRenderer>());
+		}
+
+		renderers.put(attributeType, r);
+
+		if ( recursive ) {
+			load(); // make sure imports exist (recursively)
+			for (STGroup g : imports) {
+				g.registerRenderer(attributeType, r, true);
+			}
+		}
+	}
+
+	/** Get renderer for class {@code T} associated with this group.
+	 * <p>
+	 *  For non-imported groups and object-to-render of class {@code T}, use renderer
+	 *  (if any) registered for {@code T}.  For imports, any renderer
+	 *  set on import group is ignored even when using an imported template.
+	 *  You should set the renderer on the main group
+	 *  you use (or all to be sure).  I look at import groups as
+	 *  "helpers" that should give me templates and nothing else. If you
+	 *  have multiple renderers for {@code String}, say, then just make uber combined
+	 *  renderer with more specific format names.</p>
+	 */
+	public AttributeRenderer getAttributeRenderer(Class<?> attributeType) {
+		if ( renderers==null ) {
+			return null;
+		}
+
+		return renderers.get(attributeType);
+	}
+
+	public ST createStringTemplate(CompiledST impl) {
+		ST st = new ST();
+		st.impl = impl;
+		st.groupThatCreatedThisInstance = this;
+		if ( impl.formalArguments!=null ) {
+			st.locals = new Object[impl.formalArguments.size()];
+			Arrays.fill(st.locals, ST.EMPTY_ATTR);
+		}
+		return st;
+	}
+
+	/** Differentiate so we can avoid having creation events for regions,
+	 *  map operations, and other implicit "new ST" events during rendering.
+	 */
+	public ST createStringTemplateInternally(CompiledST impl) {
+		ST st = createStringTemplate(impl);
+		if ( trackCreationEvents && st.debugState!=null ) {
+			st.debugState.newSTEvent = null; // toss it out
+		}
+		return st;
+	}
+
+	public ST createStringTemplateInternally(ST proto) {
+		return new ST(proto); // no need to wack debugState; not set in ST(proto).
+	}
+
+	public String getName() { return "<no name>;"; }
+	public String getFileName() { return null; }
+
+	/** Return root dir if this is group dir; return dir containing group file
+	 *  if this is group file.  This is derived from original incoming
+	 *  dir or filename.  If it was absolute, this should come back
+	 *  as full absolute path.  If only a URL is available, return URL of
+	 *  one dir up.
+	 */
+	public URL getRootDirURL() { return null; }
+
+	public URL getURL(String fileName) {
+		URL url;
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		url = cl.getResource(fileName);
+		if ( url==null ) {
+			cl = this.getClass().getClassLoader();
+			url = cl.getResource(fileName);
+		}
+		return url;
+	}
+
+	@Override
+	public String toString() { return getName(); }
+
+	public String show() {
+		StringBuilder buf = new StringBuilder();
+		if ( imports.size()!=0 ) buf.append(" : "+imports);
+		for (String name : templates.keySet()) {
+			CompiledST c = rawGetTemplate(name);
+			if ( c.isAnonSubtemplate || c==NOT_FOUND_ST ) continue;
+			for (STAnnotation annotation : c.annotations) {
+				buf.append('@');
+				buf.append(annotation.getName());
+				buf.append('(');
+				buf.append(annotation.getValue());
+				buf.append(')');
+				buf.append(Misc.newline);
+			}
+			int slash = name.lastIndexOf('/');
+			name = name.substring(slash+1, name.length());
+			buf.append(name);
+			buf.append('(');
+			if ( c.formalArguments!=null ) buf.append( Misc.join(c.formalArguments.values().iterator(), ",") );
+			buf.append(')');
+			buf.append(" ::= <<"+Misc.newline);
+			buf.append(c.template+ Misc.newline);
+			buf.append(">>"+Misc.newline);
+		}
+		return buf.toString();
+	}
 
     public <T> void registerRenderer(Class<T> attributeType, AttributeRenderer<? super T> r, boolean recursive) {
         if ( attributeType.isPrimitive() ) {

@@ -68,16 +68,6 @@ public class TestRegions extends BaseTest {
         writeFile(dir, "g1.stg", "a() ::= <<[<@r()>]>>\n");
         writeFile(dir, "g2.stg", "@a.r() ::= <<foo>>\n");
 
-<<<<<<< HEAD
-        STGroup group1 = new STGroupFile(dir+"/g1.stg");
-        STGroup group2 = new STGroupFile(dir+"/g2.stg");
-        group2.importTemplates(group1); // define r in g2
-        ST st = group2.getInstanceOf("a");
-        String expected = "[foo]";
-        String result = st.render();
-        assertEquals(expected, result);
-    }
-=======
 		STGroup group1 = new STGroupFile(dir+"/g1.stg");
         ErrorManager errorManager = buildErrorManager();
         group1.errMgr = errorManager;
@@ -89,7 +79,6 @@ public class TestRegions extends BaseTest {
 		String result = st.render();
 		assertEquals(expected, result);
 	}
->>>>>>> b6a91ae (Added support for template annotations.)
 
     @Test public void testDefineRegionInSubgroupOneInSubdir() throws Exception {
         String dir = getRandomDir();

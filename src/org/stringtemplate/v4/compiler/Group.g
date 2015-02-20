@@ -200,7 +200,6 @@ groupName returns [String name]
 	;
 
 delimiters
-<<<<<<< HEAD
     :	'delimiters' a=STRING ',' b=STRING
      	{
 		boolean supported = true;
@@ -222,14 +221,6 @@ delimiters
 		}
         }
     ;
-=======
-	:	'delimiters' a=STRING ',' b=STRING
-	 	{
-	 	group.delimiterStartChar=$a.getText().charAt(1);
-		group.delimiterStopChar=$b.getText().charAt(1);
-		}
-	;
->>>>>>> 3caca0d (Fixed some tabs.)
 
 /** Match template and dictionary defs outside of (...)+ loop in group.
  *  The key is catching while still in the loop; must keep prediction of
@@ -244,15 +235,15 @@ def[String prefix] : templateDefOrRegion[prefix] | dictDef ;
 
 fragment annotations returns [List<STAnnotation> result]
 @init { result = new ArrayList<STAnnotation>(); }
-	:  (a=annotation { result.add(a); })*
-	;
+    :  (a=annotation { result.add(a); })*
+    ;
 
 fragment annotation returns [STAnnotation result]
-	:  '@' name=ID '(' value=STRING ')'
-		{
-			result = new STAnnotation($name.text, $value.text);
-		}
-	;
+    :  '@' name=ID '(' value=STRING ')'
+        {
+            result = new STAnnotation($name.text, $value.text);
+        }
+    ;
 
 templateDefOrRegion[String prefix]
 	:	(	'@' enclosing=ID '.' name=ID '(' ')' templateDefOrRegionBody[prefix, $name, $enclosing, null, null]
@@ -322,13 +313,8 @@ formalArg[List<FormalArgument> args]
 			}
 			}
 		)
-<<<<<<< HEAD
-		{addArgument($args, $ID, $a);}
-    ;
-=======
 		{$args.add(new FormalArgument($ID.text, $a));}
 	;
->>>>>>> 3caca0d (Fixed some tabs.)
 
 /*
 suffix returns [int cardinality=FormalArgument.REQUIRED]

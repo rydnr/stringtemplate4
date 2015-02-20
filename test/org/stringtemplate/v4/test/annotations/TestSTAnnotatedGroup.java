@@ -49,7 +49,7 @@ import org.stringtemplate.v4.test.BaseTest;
 public class TestSTAnnotatedGroup extends BaseTest {
 
 	@Test public void testListsAllAnnotatedTemplates() throws Exception {
-		
+
 		String templates =
 			"@Main(\"the main template\")\n" +
 			"f() ::= <<foo>>" + Misc.newline +

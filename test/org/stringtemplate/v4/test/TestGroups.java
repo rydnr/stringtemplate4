@@ -222,35 +222,6 @@ public class TestGroups extends BaseTest {
         assertEquals(expected, result);
     }
 
-<<<<<<< HEAD
-    @Test public void testAlias() throws Exception {
-        String dir = getRandomDir();
-        String groupFile =
-            "a() ::= \"bar\"\n"+
-            "b ::= a\n";
-        writeFile(dir, "group.stg", groupFile);
-        STGroupFile group = new STGroupFile(dir+"/group.stg");
-        ST st = group.getInstanceOf("b");
-        String expected = "bar";
-        String result = st.render();
-        assertEquals(expected, result);
-    }
-
-    @Test public void testAliasWithArgs() throws Exception {
-        String dir = getRandomDir();
-        String groupFile =
-            "a(x,y) ::= \"<x><y>\"\n"+
-            "b ::= a\n";
-        writeFile(dir, "group.stg", groupFile);
-        STGroupFile group = new STGroupFile(dir+"/group.stg");
-        ST st = group.getInstanceOf("b");
-        st.add("x", 1);
-        st.add("y", 2);
-        String expected = "12";
-        String result = st.render();
-        assertEquals(expected, result);
-    }
-=======
 	@Test public void testAlias() throws Exception {
 		String dir = getRandomDir();
 		String groupFile =
@@ -280,7 +251,6 @@ public class TestGroups extends BaseTest {
 		String result = st.render();
 		assertEquals(expected, result);
 	}
->>>>>>> b6a91ae (Added support for template annotations.)
 
     @Test public void testSimpleDefaultArg() throws Exception {
         String dir = getRandomDir();

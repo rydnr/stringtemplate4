@@ -376,11 +376,11 @@ public abstract class BaseTest {
         }
     }
 
-	public static String getRandomDir() {
+    public static String getRandomDir() {
  		File randomDir = new File(tmpdir, "dir" + String.valueOf((int)(Math.random() * 100000)));
 		randomDir.mkdirs();
 		return randomDir.getAbsolutePath();
-	}
+    }
 
     /**
      * Removes the specified file or directory, and all subdirectories.
@@ -446,5 +446,40 @@ public abstract class BaseTest {
 					}
 				});
 	}
+
+    /**
+     * Builds an error manager to make the tests fail upon any error.
+     * @return such {@link ErrorManager}.
+     */
+    protected ErrorManager buildErrorManager() {
+        return
+            new ErrorManager(
+                new STErrorListener()
+                {
+                    @Override
+                    public void compileTimeError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+
+                    @Override
+                    public void runTimeError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+
+                    @Override
+                    public void IOError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+
+                    @Override
+                    public void internalError(final STMessage msg)
+                    {
+                        Assert.fail(msg.toString());
+                    }
+                });
+    }
 
 }
